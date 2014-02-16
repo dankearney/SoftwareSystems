@@ -10,6 +10,7 @@ License: Creative Commons Attribution-ShareAlike 3.0
 #include <string.h>
 
 #define NUM_TRACKS 5
+#define DEBUG_MODE 1
 
 char tracks[][80] = {
     "So What",
@@ -38,7 +39,7 @@ void find_track(char search_for[])
 // Prints track number and title.
 void find_track_regex(char pattern[])
 {
-    // TODO: fill this in
+    printf(pattern);
 }
 
 // Truncates the string at the first newline, if there is one.
@@ -53,14 +54,23 @@ void rstrip(char s[])
 int main (int argc, char *argv[])
 {
     char search_for[80];
+    switch (DEBUG_MODE) {
+    case 0:
+	/* take input from the user and search */
+	printf("Search for: ");
+	fgets(search_for, 80, stdin);
+	rstrip(search_for);
 
-    /* take input from the user and search */
-    printf("Search for: ");
-    fgets(search_for, 80, stdin);
-    rstrip(search_for);
+	find_track(search_for);
+	//find_track_regex(search_for);
 
-    find_track(search_for);
-    //find_track_regex(search_for);
+	return 0;
 
-    return 0;
+    case 1:
+	find_track_regex("[A-F]");
+	return 0;
+
+    default:
+	return 0;
+  }
 }
