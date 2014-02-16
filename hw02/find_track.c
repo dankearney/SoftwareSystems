@@ -11,7 +11,7 @@ License: Creative Commons Attribution-ShareAlike 3.0
 #include <regex.h>
 
 #define NUM_TRACKS 5
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 char tracks[][80] = {
     "So What",
@@ -35,6 +35,9 @@ void find_track(char search_for[])
     }
 }
 
+// Uses regex to match song
+// Prints song index and title
+// Prints regex error
 void match_song(int i, regex_t *regex) {
     int re_err_status = regexec(regex, tracks[i], 0, NULL, 0);
     if (!re_err_status) {
@@ -47,6 +50,7 @@ void match_song(int i, regex_t *regex) {
     }
 }
 
+// Compiles re and prints error upon failure
 void compile_re(regex_t *regex, char *pattern) {
     int re_err_status = regcomp(regex, pattern, 0);
     if (re_err_status) { 
@@ -93,7 +97,7 @@ int main (int argc, char *argv[])
 	rstrip(search_for);
 
 	find_track(search_for);
-	//find_track_regex(search_for);
+	find_track_regex(search_for);
 
 	return 0;
 
