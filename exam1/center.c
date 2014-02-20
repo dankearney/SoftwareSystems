@@ -1,5 +1,4 @@
 /* Example code for Software Systems at Olin College.
-
 Copyright 2014 Allen Downey
 License: Creative Commons Attribution-ShareAlike 3.0
 
@@ -18,8 +17,26 @@ License: Creative Commons Attribution-ShareAlike 3.0
 
 char *center(char *s, int n, char fillchar)
 {
-    // FILL THIS IN
-    //    return NULL;
+
+    if (strlen(s) > n) {
+	fprintf(stderr, "n must be larger than string");
+	exit(1);
+    } 
+
+    char *centered = malloc((n+1) * sizeof(char));
+    int startWord = (n - strlen(s)) / 2;
+
+    int i;
+    int j = 0;
+    for (i=0; i<n; i++) {
+	if ((i >= startWord) && (i < startWord + strlen(s))) {
+	    centered[i] = s[j];
+	    j++;
+	} else {
+	    centered[i] = fillchar;
+	}
+    }
+    return centered;
 }
 
 
@@ -31,11 +48,14 @@ int main (int argc, char *argv[])
     char *s2 = center("Systems", 31, '-');
     printf("%s\n", s2);
 
-    char *s3 = center("Spring 2014", 32, '*');
+    char *s3 = center("S", 1, '*');
     printf("%s\n", s3);
 
-    char *s4 = center("Exam 1", 33, '^');
+    char *s4 = center("S", 2, '*');
     printf("%s\n", s4);
+
+    char *s5 = center("Exam 1", 4, '^');
+    printf("%s\n", s5);
 
     return 0;
 }
