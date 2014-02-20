@@ -8,9 +8,10 @@ License: Creative Commons Attribution-ShareAlike 3.0
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <regex.h>
 
 #define NUM_TRACKS 5
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 char tracks[][80] = {
     "So What",
@@ -34,12 +35,45 @@ void find_track(char search_for[])
     }
 }
 
-// Finds all tracks that match the given pattern.
-//
-// Prints track number and title.
+// Uses regex to match song
+// Prints song index and title
+// Prints regex error
+// Code adapted from http://www.peope.net/old/regex.html
+void match_song_re(int i, regex_t *regex) {
+    int re_err_status = regexec(regex, tracks[i], 0, NULL, 0);
+    if (!re_err_status) {
+	printf("Track %i: '%s'\n", i, tracks[i]);
+    } else if (re_err_status != REG_NOMATCH) {
+	char msgbuf[100];        
+	regerror(re_err_status, regex, msgbuf, sizeof(msgbuf));
+	fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+	exit(1);
+    }
+}
+
+// Compiles re and prints error upon failure
+regex_t compile_re(char *pattern) {
+    regex_t regex;
+    if (regcomp(&regex, pattern, 0)) {
+	fprintf(stderr, "Could not compile regex\n"); 
+	exit(1); 
+    }
+    return regex;
+}
+
+// Prints track number and title, using regex to search.
 void find_track_regex(char pattern[])
 {
-    printf(pattern);
+    // Compile re
+    regex_t regex = compile_re(pattern);
+
+    // Search for match
+    int i;
+    for (i=0; i<NUM_TRACKS; i++) {
+	match_song_re(i, &regex);
+    }
+
+    regfree(&regex);
 }
 
 // Truncates the string at the first newline, if there is one.
@@ -54,23 +88,10 @@ void rstrip(char s[])
 int main (int argc, char *argv[])
 {
     char search_for[80];
-    switch (DEBUG_MODE) {
-    case 0:
-	/* take input from the user and search */
-	printf("Search for: ");
-	fgets(search_for, 80, stdin);
-	rstrip(search_for);
-
-	find_track(search_for);
-	//find_track_regex(search_for);
-
-	return 0;
-
-    case 1:
-	find_track_regex("[A-F]");
-	return 0;
-
-    default:
-	return 0;
-  }
+    /* take input from the user and search */
+    printf("Search for: ");
+    fgets(search_for, 80, stdin);
+    rstrip(search_for);
+    find_track_regex(search_for);
+    return 0;
 }
