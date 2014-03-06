@@ -31,8 +31,12 @@ typedef struct {
 // flags: flags passed to regcomp
 // returns: new Regex 
 Regex *make_regex(char *pattern, int flags) {
-    // FILL THIS IN
-    return NULL;
+    Regex *regex = malloc(sizeof(Regex));;
+    if (regcomp(regex->inner_struct, pattern, flags)) {
+	fprintf(stderr, "Could not compile regex\n"); 
+	exit(1); 
+    }
+    return regex;
 }
 
 // Checks whether a regex matches a string.
@@ -40,14 +44,23 @@ Regex *make_regex(char *pattern, int flags) {
 // s: string
 // returns: 1 if there's a match, 0 otherwise
 int regex_match(Regex *regex, char *s) {
-    // FILL THIS IN
+    int re_err_status = regexec(regex->inner_struct, s, 0, NULL, 0);
+    if (!re_err_status) {
+	return 1;
+    } else if (re_err_status != REG_NOMATCH) {
+	char msgbuf[100];        
+	regerror(re_err_status, regex->inner_struct, msgbuf, sizeof(msgbuf));
+	fprintf(stderr, "Regex match failed: %s\n", msgbuf);
+	exit(1);
+    }
     return 0;
 }
 
 // Frees a Regex.
 // regex: Regex
 void regex_free(Regex *regex) {
-    // FILL THIS IN
+    regfree(regex->inner_struct);
+    free(regex);
 }
 
 
