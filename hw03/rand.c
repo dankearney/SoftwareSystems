@@ -89,28 +89,35 @@ float my_random_float2()
 // compute a random double using my algorithm
 double my_random_double()
 {
-  int64_t x, exp, mant;
-  float f;
 
-  // this union is for assembling the float.
+  long long int x;
+  long long int mant;
+  long long int exp = 1022;
+  long long int mask = 1;
+
   union {
-    float f;
-    int64_t i;
+    double f;
+    long long int i;
   } b;
 
-  // generate 31 random bits (assuming that RAND_MAX is 2^31 - 1
-  x = random();
+  // generate random bits until we see the first set bit
+  while (1) {
+    x = (long long int)random();
+    x = (x << 32) | random();
+    if (x == 0) {
+      exp -= 63;
+    } else {
+      break;
+    }test
+  }
 
-  // use bit-sca-forward to find the first set bit and
-  // compute the exponent
-  asm ("bsfl %1, %0"
-       :"=r"(exp)
-       :"r"(x)
-      );
-  exp = 1022 - exp;
+  // find the location of the first set bit and compute the exponent
+  while (x & mask) {
+    mask <<= 1;
+    exp--;
+  }
 
-  // use the other 52 bits for the mantissa (for small numbers
-  // this means we are re-using some bits)
+  // use the remaining bit as the mantissa
   mant = x >> 11;
   b.i = (exp << 52) | mant;
 

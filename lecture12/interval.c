@@ -38,19 +38,19 @@ typedef struct {
 // Returns a new Interval with the given start and end times.
 // If unable to allocate, prints an error message and exits.
 Interval *make_interval(time_t start, time_t end) {
-    // fill this in
-    return NULL;
+    Interval *i = malloc(sizeof(Interval));
+    i->start = start; i->end = end;
+    return i;
 }
 
 // Computes the duration of an Interval using difftime.
 double interval_duration(Interval *interval) {
-    // fill this in
-    return 0.0;
+    return interval->end - interval->start;
 }
 
 // Frees an Interval.
 void free_interval(Interval *interval) {
-    // fill this in
+    free(interval);
 }
 
 // Prints an interval in local time.

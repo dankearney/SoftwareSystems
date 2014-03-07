@@ -20,7 +20,7 @@ main (int argc, char *argv[])
   srandom (seed);
 
   for (i=0; i<iters; i++) {
-    f = my_random_float();
+    f = my_random_double();
     printf ("%f\n", f);
   }
 }

@@ -118,4 +118,23 @@ main (int argc, char *argv[])
   }
   t1 = get_seconds();
   printf ("theirs \t %f ms\n", t1 - t0);    
+
+
+  srandom (seed);
+  t0 = get_seconds();
+  for (i=0; i<iters; i++) {
+      f = random_double();
+  }
+  t1 = get_seconds();
+  printf ("their double \t %f ms\n", t1 - t0);
+    
+
+  srandom (seed);
+  t0 = get_seconds();
+  for (i=0; i<iters; i++) {
+    f = my_random_double();
+  }
+  t1 = get_seconds();
+  printf ("my double \t %f ms\n", t1 - t0);    
 }
+gcc
