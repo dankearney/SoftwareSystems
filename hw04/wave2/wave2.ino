@@ -11,11 +11,17 @@
  License: Public Domain
  
  */
- 
- 
+   
 int ledPin = 5;       // select the pin for the LED
 int buttonPin1 = 2;
 int buttonPin2 = 3;
+
+int low = 36;
+int high = 255;
+int stride = 5;
+int counter = low;
+
+int frequency = 8000;
 
 void setup() {
   Serial.begin(9600);
@@ -34,6 +40,28 @@ void setup() {
   pinMode(7, OUTPUT);  
   pinMode(6, OUTPUT);  
   
+  cli();
+  
+  TCCR2A = 0;// set entire TCCR2A register to 0
+  TCCR2B = 0;// same for TCCR2B
+  TCNT2  = 0;//initialize counter value to 0
+  // set compare match register for 8khz increments
+  OCR2A = (16*1000000) / (frequency*8) - 1;
+  // turn on CTC mode
+  TCCR2A |= (1 << WGM21);
+  // Set CS21 bit for 8 prescaler  
+  TCCR2B |= (1 << CS21);   
+  // enable timer compare interrupt
+  TIMSK2 |= (1 << OCIE2A);
+  
+  sei();//allow interrupts
+}
+
+ISR(TIMER2_COMPA_vect){
+    counter += stride;
+    if (counter > high) {
+      counter = low;
+    }
 }
 
 int reverse1[] = {
@@ -43,27 +71,18 @@ int reverse2[] = {
 0, 128, 64, 192, };
 
 void writeByte(int x) {
-  PORTB = reverse[x];
+  PORTB = reverse1[x];
 }
-
-int low = 36;
-int high = 255;
-int stride = 5;
-int counter = low;
 
 void loop() {
   int button1 = digitalRead(buttonPin1);
-  if(button1) {
+  
+  // write to the digital pins  
+  if (!button1) {
+    digitalWrite(ledPin, HIGH);
+    writeByte(counter);
+  } else {
     digitalWrite(ledPin, LOW);
     return;
   }
-  counter += stride;
-  if (counter > high) {
-    counter = low;
-    //Serial.println(counter);
-  }
-
-  // write to the digital pins  
-  writeByte(counter);
-  digitalWrite(ledPin, HIGH);
 }
