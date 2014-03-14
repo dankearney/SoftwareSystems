@@ -18,12 +18,15 @@ int buttonPin2 = 3;
 int counter = 0;
 volatile boolean on = false;
 
-int playing = 0;
+long lastDebounceTimeSwitch = 0; 
+long lastDebounceTimeMode = 0;
+long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
-int waves[][30] = {
-  {255, 395, 470, 444, 330, 180, 66, 40, 115, 255, 255, 395, 470, 444, 330, 180, 66, 40, 115, 255, 255, 395, 470, 444, 330, 180, 66, 40, 115, 255},
-  {255, 302, 347, 387, 421, 448, 465, 473, 470, 458, 435, 405, 367, 325, 279, 231, 185, 143, 105, 75, 52, 40, 37, 45, 62, 89, 123, 163, 208, 255},
-  {255, 473, 255, 37, 255, 255, 473, 255, 37, 255, 255, 473, 255, 37, 255, 255, 473, 255, 37, 255, 255, 473, 255, 37, 255, 255, 473, 255, 37, 255},
+int playing = 0;
+int waves[3][100] = {
+  {146, 153, 160, 167, 173, 180, 187, 193, 199, 205, 211, 216, 221, 226, 231, 235, 239, 242, 245, 248, 250, 252, 253, 254, 255, 255, 255, 254, 253, 251, 249, 247, 244, 240, 237, 233, 228, 224, 219, 213, 208, 202, 196, 190, 183, 177, 170, 163, 156, 149, 143, 136, 129, 122, 115, 109, 102, 96, 90, 84, 79, 73, 68, 64, 59, 55, 52, 48, 45, 43, 41, 39, 38, 37, 37, 37, 38, 39, 40, 42, 44, 47, 50, 53, 57, 61, 66, 71, 76, 81, 87, 93, 99, 105, 112, 119, 125, 132, 139, 146},
+  {146, 160, 173, 187, 199, 211, 221, 231, 239, 245, 250, 253, 255, 255, 253, 249, 244, 237, 228, 219, 208, 196, 183, 170, 156, 143, 129, 115, 102, 90, 79, 68, 59, 52, 45, 41, 38, 37, 38, 40, 44, 50, 57, 66, 76, 87, 99, 112, 125, 139, 153, 167, 180, 193, 205, 216, 226, 235, 242, 248, 252, 254, 255, 254, 251, 247, 240, 233, 224, 213, 202, 190, 177, 163, 149, 136, 122, 109, 96, 84, 73, 64, 55, 48, 43, 39, 37, 37, 39, 42, 47, 53, 61, 71, 81, 93, 105, 119, 132, 146},
+  {146, 167, 187, 205, 221, 235, 245, 252, 255, 254, 249, 240, 228, 213, 196, 177, 156, 136, 115, 96, 79, 64, 52, 43, 38, 37, 40, 47, 57, 71, 87, 105, 125, 146, 167, 187, 205, 221, 235, 245, 252, 255, 254, 249, 240, 228, 213, 196, 177, 156, 136, 115, 96, 79, 64, 52, 43, 38, 37, 40, 47, 57, 71, 87, 105, 125, 146, 167, 187, 205, 221, 235, 245, 252, 255, 254, 249, 240, 228, 213, 196, 177, 156, 136, 115, 96, 79, 64, 52, 43, 38, 37, 40, 47, 57, 71, 87, 105, 125, 146},
 };
 
 static const unsigned char BitReverseTable256[] = 
@@ -53,7 +56,7 @@ void setup() {
   pinMode(buttonPin2, INPUT_PULLUP);  
   pinMode(ledPin, OUTPUT);
 
-  attachInterrupt(0, togglePlay, CHANGE);
+  attachInterrupt(0, togglePlay, FALLING);
   attachInterrupt(1, switchSound, FALLING);
   
   pinMode(13, OUTPUT);  
@@ -83,19 +86,22 @@ void setup() {
 }
 
 void switchSound() {
-  playing = (playing + 1) % sizeof(waves);
+  if ((lastDebounceTimeMode - millis()) > debounceDelay) {
+    playing = (playing + 1) % sizeof(waves);
+  }
 }
 
 void togglePlay() {
-  on = !on;
-  digitalWrite(ledPin, on ? HIGH : LOW);
+  if ((lastDebounceTimeSwitch - millis()) > debounceDelay) {
+    on = !on;
+    digitalWrite(ledPin, on ? HIGH : LOW);
+    attachInterrupt(0, togglePlay, on ? RISING : FALLING);
+    lastDebounceTimeSwitch = millis();
+  }
 }
 
 ISR(TIMER2_COMPA_vect){
-  counter += 1;
-  if (counter > sizeof(waves[playing])) {
-    counter = 0;
-  }
+  counter =  (counter + 1) % sizeof(waves[playing]);
 }
 
 void writeByte(int x) {
