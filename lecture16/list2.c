@@ -107,8 +107,17 @@ void reverse(Node **head) {
 // element between the first and second elements.
 // Returns 0 if successful, -1 if the index is out of range.
 int insert_by_index(Node **head, int val, int index) {
-    // FILL THIS IN
-    return -1;
+    Node *current = *head;
+    int i = 0;
+    for (i=0; i<index-1; i++) {
+        printf("%i\n", current->val);
+        current = current->next;
+    }
+    if (!current)
+        return -1;
+    Node *insert = make_node(val, current->next);
+    current->next = insert;
+    return 0;
 }
 
 // Makes a mysterious data structure.
@@ -135,10 +144,17 @@ int main() {
     insert_by_index(&test_list, 3, 2);
     insert_by_index(&test_list, 5, 4);
     insert_by_index(&test_list, 7, 6);
+    
+    // print_list(test_list);
+
+    puts("\n");
 
     // this index is out of bounds; should return -1
     int res = insert_by_index(&test_list, 9, 8);
     assert(res == -1);
+
+    return;
+
 
     printf("test_list\n");
     print_list(test_list);
