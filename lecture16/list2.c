@@ -110,7 +110,6 @@ int insert_by_index(Node **head, int val, int index) {
     Node *current = *head;
     int i = 0;
     for (i=0; i<index-1; i++) {
-        printf("%i\n", current->val);
         current = current->next;
     }
     if (!current)
