@@ -152,9 +152,6 @@ int main() {
     int res = insert_by_index(&test_list, 9, 8);
     assert(res == -1);
 
-    return;
-
-
     printf("test_list\n");
     print_list(test_list);
 
