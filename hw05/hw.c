@@ -28,20 +28,22 @@ int main(int argc, char* argv[])
     const char* fileName = argv[1]; 
 
     FILE* file = fopen(fileName, "r"); 
-    GString *line = g_string_new("hi");	
+
 
 	GHashTable *hist = g_hash_table_new ((GHashFunc)g_string_hash, (GEqualFunc)g_string_equal);
 
-	int *count = malloc(sizeof(int));
+    char line[1024];	
 
-    while (fgets(line->str, sizeof(char)*10000, file)) {
-    	(*count)++;
-    	if (*count==10)
+	int count = 0;
+    while (fgets(line, sizeof(line), file)) {
+    	count++;
+    	if (count==10)
     		break;
-    	g_strstrip(line->str);
-        g_hash_table_insert(hist, (gpointer)line, (gpointer)count);
+    	GString *gline = g_string_new(line);
+    	g_strstrip(gline->str);
+    	gsize len = gline->len;
+        g_hash_table_insert(hist, (gpointer)gline, (gpointer)&len);
     	print_hash_table(hist);
     }
-    print_hash_table(hist);
     return 0;
 }
