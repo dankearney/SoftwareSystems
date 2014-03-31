@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     	g_strstrip(gline->str);
     	gsize len = gline->len;
         g_hash_table_insert(hist, (gpointer)gline, (gpointer)&len);
-    	print_hash_table(hist);
     }
+    print_hash_table(hist);
     return 0;
 }
