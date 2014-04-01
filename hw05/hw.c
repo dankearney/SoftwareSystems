@@ -48,21 +48,18 @@ int main(int argc, char* argv[])
     FILE* file = fopen(fileName, "r"); 
 
 	GHashTable *hist = g_hash_table_new ((GHashFunc)g_string_hash, (GEqualFunc)g_string_equal);
-	int start;
-    char line[1024];	
+	char line[1024];
+	gchar ** words = malloc(sizeof(line)*sizeof(char));
 	int i;
     while (fgets(line, sizeof(line), file)) {
-    	start = 0;
-    	for (i=0; i<strlen(line); i++) {
-  			g_strstrip(line);
-    		if (line[i] == ' ') {
-    			GString *sub = substring(line, start, i - start);
-		    	add_to_hist(hist, sub);   
-		    	start = i+1;
-    		}
+    	words = g_strsplit(line, " ", 50);
+    	for (i=0; i<50; i++) {
+    		if (words[i] == NULL)
+    			break;
+    		add_to_hist(hist, g_string_new(words[i]));
     	}
-
-    }
+    	
+    }    
     print_hash_table(hist);
     return 0;
 }
