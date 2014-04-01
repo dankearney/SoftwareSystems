@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <string.h>
+#include <ctype.h>
 
 void print_hash_table(GHashTable *h) 
 {
@@ -22,21 +23,42 @@ void add_to_hist(GHashTable *h, GString *s)
 {
     int *val = g_hash_table_lookup(h, (gpointer)s);
     int *newVal = malloc(sizeof(int));
-    if (val == NULL)
-    	*newVal = 1;
-    else {
-    	*newVal = *val + 1;
-    }
+    *newVal = (val==NULL) ? 1 : *val+1;
     g_hash_table_insert(h, (gpointer)s, (gpointer)newVal);	
 }
 
-GString* substring(const char* str, int begin, int len) 
-{ 
-  char *slice = strndup(str + begin, sizeof(char) * len); 
-  GString *g = g_string_new(slice);
-  free(slice);
-  return g;
-} 
+//http://stackoverflow.com/questions/1841758/how-to-remove-punctuation-from-a-string-in-c
+void remove_punct_and_make_lower_case(char *p)
+{
+    char *src = p, *dst = p;
+    while (*src)
+    {
+       if (ispunct((unsigned char)*src))
+       {
+          /* Skip this character */
+          src++;
+       }
+       else if (isupper((unsigned char)*src))
+       {
+          /* Make it lowercase */
+          *dst++ = tolower((unsigned char)*src);
+          src++;
+       }
+       else if (src == dst)
+       {
+          /* Increment both pointers without copying */
+          src++;
+          dst++;
+       }
+       else
+       {
+          /* Copy character */
+          *dst++ = *src++;
+       }
+    }
+
+    *dst = 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -49,15 +71,14 @@ int main(int argc, char* argv[])
 	GHashTable *hist = g_hash_table_new ((GHashFunc)g_string_hash, (GEqualFunc)g_string_equal);
 	char line[1024];
 	const int MAX_WORDS_IN_LINE = 50;
-	gchar ** words = malloc(sizeof(line)*sizeof(char));
+	gchar ** words;
 	int i;
     while (fgets(line, sizeof(line), file)) {
     	words = g_strsplit(line, " ", MAX_WORDS_IN_LINE);
     	for (i=0; i<MAX_WORDS_IN_LINE; i++) {
-    		if (words[i] == NULL) {
-    			printf("DETECTED");
+    		if (words[i] == NULL) 
     			break;
-    	}
+    		remove_punct_and_make_lower_case(words[i]);
     		add_to_hist(hist, g_string_new(words[i]));
     	}
     	
