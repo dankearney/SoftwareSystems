@@ -4,27 +4,53 @@
 #include <string.h>
 #include <ctype.h>
 
+typedef struct value {
+	int val;
+	GString * str;
+} Value;
+
+Value * make_value(int val, GString * str) {
+	Value *v = malloc(sizeof(Value));
+	v->val = val;
+	v->str = g_string_new(g_strdup(str->str));
+	return v;
+}
+
+int cmp_values(gconstpointer a, gconstpointer b) {
+	Value *vala = (Value *) a;
+	Value *valb = (Value *) b;
+	return valb->val - vala->val;
+}
+
+void increment_val(Value *v) {
+	(v->val)++;
+}
+
+
 void print_hash_table(GHashTable *h) 
 {
 	guint size = g_hash_table_size(h);
-	GList *keys = g_hash_table_get_keys (h);
 	GList *vals = g_hash_table_get_values (h);
-	GString *key;
-	int *val;
+	vals = g_list_sort(vals, (GCompareFunc) cmp_values);
+	Value *val;
 	int i;
 	for (i=0; i<size; i++) {
-		key = (GString*) g_list_nth_data(keys, i);
-		val = (int *) g_list_nth_data(vals, i);
-		printf("key: %s; val: %i\n", key->str, *val);
+		val = (Value *) g_list_nth_data(vals, i);
+		printf("key: %s; val: %i\n", val->str->str, val->val);
 	}
 }
 
 void add_to_hist(GHashTable *h, GString *s) 
 {
-    int *val = g_hash_table_lookup(h, (gpointer)s);
-    int *newVal = malloc(sizeof(int));
-    *newVal = (val==NULL) ? 1 : *val+1;
-    g_hash_table_insert(h, (gpointer)s, (gpointer)newVal);	
+    Value *val = g_hash_table_lookup(h, (gpointer)s);
+    if (val == NULL) {
+    	val = make_value(1, s);
+        g_hash_table_insert(h, (gpointer)s, (gpointer)val);	
+    }
+    else {
+    	increment_val(val);
+    }
+
 }
 
 //http://stackoverflow.com/questions/1841758/how-to-remove-punctuation-from-a-string-in-c
