@@ -46,16 +46,18 @@ int main(int argc, char* argv[])
 	}
     const char* fileName = argv[1]; 
     FILE* file = fopen(fileName, "r"); 
-
 	GHashTable *hist = g_hash_table_new ((GHashFunc)g_string_hash, (GEqualFunc)g_string_equal);
 	char line[1024];
+	const int MAX_WORDS_IN_LINE = 50;
 	gchar ** words = malloc(sizeof(line)*sizeof(char));
 	int i;
     while (fgets(line, sizeof(line), file)) {
-    	words = g_strsplit(line, " ", 50);
-    	for (i=0; i<50; i++) {
-    		if (words[i] == NULL)
+    	words = g_strsplit(line, " ", MAX_WORDS_IN_LINE);
+    	for (i=0; i<MAX_WORDS_IN_LINE; i++) {
+    		if (words[i] == NULL) {
+    			printf("DETECTED");
     			break;
+    	}
     		add_to_hist(hist, g_string_new(words[i]));
     	}
     	
