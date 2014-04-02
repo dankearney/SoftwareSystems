@@ -16,6 +16,10 @@ const int DEFAULT_NUM_TO_PRINT = 10;
 
 Value * make_value(int val, GString * str) {
 	Value *v = malloc(sizeof(Value));
+	if (v==NULL) {
+		fprintf(stderr, "Malloc failed to make Value");
+		exit(-1);
+	}
 	v->val = val;
 	v->str = g_string_new(g_strdup(str->str));
 	return v;
@@ -23,9 +27,7 @@ Value * make_value(int val, GString * str) {
 
 
 int cmp_values(gconstpointer a, gconstpointer b) {
-	Value *vala = (Value *) a;
-	Value *valb = (Value *) b;
-	return valb->val - vala->val;
+	return ((Value *)b)->val - ((Value *)a)->val;
 }
 
 
@@ -49,19 +51,19 @@ void print_hash_table(GHashTable *h, int num_to_print)
 
 void add_to_hist(GHashTable *h, GString *s) 
 {
-    Value *val = g_hash_table_lookup(h, (gpointer)s);
-    if (val == NULL) {
-    	val = make_value(1, s);
-        g_hash_table_insert(h, (gpointer)s, (gpointer)val);	
-    }
-    else {
-    	increment_val(val);
-    }
+	Value *val = g_hash_table_lookup(h, (gpointer)s);
+	if (val == NULL) {
+		val = make_value(1, s);
+		g_hash_table_insert(h, (gpointer)s, (gpointer)val);	
+	}
+	else {
+		increment_val(val);
+	}
 
 }
 
 
-void remove_punct_and_make_lower_case(char *p)
+void remove_nonchars_and_set_lowercase(char *p)
 {
 	char *src =p, *dst = p;
 	while (*src) {
@@ -80,7 +82,7 @@ void remove_punct_and_make_lower_case(char *p)
 
 
 void format_and_add_to_hist(GHashTable *h, char *s) {
-	remove_punct_and_make_lower_case(s);
+	remove_nonchars_and_set_lowercase(s);
 	if (!*s) 
 		return;
 	GString *g = g_string_new(s);
@@ -112,18 +114,18 @@ gchar ** split_line(char *buf)
 int main(int argc, char* argv[])
 {
 	int num_to_print = handle_args_and_get_num_print(argc, argv);
-    FILE* file = fopen(argv[1], "r");
+	FILE* file = fopen(argv[1], "r");
 	GHashTable *hist = g_hash_table_new ((GHashFunc)g_string_hash, (GEqualFunc)g_string_equal);
 	char line_buf[1024]; gchar ** words; int i;
-    while (fgets(line_buf, sizeof(line_buf), file)) {
-    	words = split_line(line_buf);
-    	for (i=0; i<MAX_WORDS_IN_LINE; i++) {
-    		if (words[i] == NULL) 
-    			break;
-    		format_and_add_to_hist(hist, words[i]);
-    	}
-    	
-    }    
-    print_hash_table(hist, num_to_print);
-    return 0;
+	while (fgets(line_buf, sizeof(line_buf), file)) {
+		words = split_line(line_buf);
+		for (i=0; i<MAX_WORDS_IN_LINE; i++) {
+			if (words[i] == NULL) 
+				break;
+			format_and_add_to_hist(hist, words[i]);
+		}
+		
+	}
+	print_hash_table(hist, num_to_print);
+	return 0;
 }
