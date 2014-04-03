@@ -111,6 +111,7 @@ gchar ** split_line(char *buf)
 }
 
 
+/*  Args: name of text file, (optional) num results to show */
 int main(int argc, char* argv[])
 {
   int num_to_print = handle_args_and_get_num_print(argc, argv);
