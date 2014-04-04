@@ -13,7 +13,6 @@ typedef struct histvalue {
 
 
 #define MAX_WORDS_IN_LINE 50
-#define DEFAULT_NUM_TO_PRINT 10
 
 /* Returns a new histogram value
    Args: the value (count), the key */
@@ -41,14 +40,18 @@ void increment_val(HistValue *v) {
 }
 
 
-/* Prints a histogram 
-   Args: hist to print, the number of rows to print */
+/* Prints a histogram, sorted by value
+   Args: hist to print, the number of rows to print 
+   If num_to_print is -1, print all */
 void print_histogram(GHashTable *h, int num_to_print) 
 {
   GList *vals = g_hash_table_get_values (h);
   vals = g_list_sort(vals, (GCompareFunc) cmp_values);
   HistValue *val;
   int i;
+  if (num_to_print == -1) {
+      num_to_print = (int)g_hash_table_size(h);
+  }
   for (i=0; i<num_to_print; i++) {
     val = (HistValue *) g_list_nth_data(vals, i);
     printf("key: %s; count: %i\n", val->str->str, val->val);
@@ -112,7 +115,7 @@ int handle_args_and_get_num_print(int argc, char** argv)
     printf("no file given\n");
     exit(-1);  
   } else if (argc == 2) {
-    return DEFAULT_NUM_TO_PRINT; 
+      return -1; // print all
   } else {
     printf("%s", argv[2]);
     return strtol(argv[2], &num, 10);
@@ -128,7 +131,8 @@ gchar ** split_line(char *buf)
 }
 
 
-/*  Args: name of text file, (optional) num results to show */
+/*  Args: name of text file, (optional) num results to show 
+    Example usage: ./wordfreq.o twain.txt 20 */
 int main(int argc, char* argv[])
 {
   int num_to_print = handle_args_and_get_num_print(argc, argv);
