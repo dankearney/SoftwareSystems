@@ -1,0 +1,82 @@
+This was an interesting task. It was really interesting to see how much more thought has to go into programming this kind of task in C than in a language like Python.
+
+I wanted the program to run such that the user provides the name of the file to analyze as a command-line argument, with a second (optional) argument of how many word-count pairs to print, if you don't want to print the whole histogram. Try "./wordfreq.o twain.txt 20" to see the top twenty words in the book. Here's example output:
+
+the; count: 12516
+key: and; count: 8362
+key: of; count: 7377
+key: a; count: 5047
+key: to; count: 4445
+key: in; count: 3724
+key: it; count: 2723
+key: that; count: 2498
+key: was; count: 2024
+key: i; count: 1942
+key: we; count: 1933
+key: is; count: 1838
+key: with; count: 1629
+key: they; count: 1546
+key: he; count: 1385
+key: not; count: 1241
+key: for; count: 1178
+key: as; count: 1155
+key: but; count: 1141
+key: at; count: 1096
+
+If the user supplies a text file, let's call it a book, the program uses fgets to read the book line-by-line. Each line is split into an array of gchar* words by g_strsplit. Each of these words is fed into a formatter that removes punctuation, removes space characters (like \t), and lowercases the word. I looked around on the Internet for the best way to do this in C. I found that the best way is super interesting: you make two copies of the pointer to the first char in the word, one for reading and one for writing, then move both pointers forward. The "read" pointer moves forward one char each time through the loop, and the "write" pointer resets the chars' values in memory if the "read" pointer finds a char that isn't punctuation or a space. It lowercases any uppercase letter. Finally, after the "read" poiter has moved through the whole list, we terminate the "write" value with a null termination character.
+
+void remove_nonchars_and_set_lowercase(char *p)
+{
+  char *src =p, *dst = p;
+  while (*src) {
+    if (ispunct(*src) || isspace(*src)) {
+      src++;
+    } else if (isupper(*src)) {
+      *dst = tolower(*src);
+      src++; dst++;
+    } else {
+      *dst = *src;
+      src++; dst++;
+    }
+  }
+  *dst = 0;
+}
+
+The formatted word is then pushed into a histogram. The histogram is implemented as a hashtable that maps GString *keys to HistValue *values. HistValue is custom struct that contains the count and also a pointer to the key, to make printing the sorted list easier. I recognize that this implementation adds an extra pointer to each histogram entry. 
+
+To add to a histogram, the program performs a lookup of the GString. If there's a value, we increment it, and if not, we push a new HistValue with a value of 1 into the hashtable.
+
+void add_to_hist(GHashTable *h, GString *s) 
+{
+  HistValue *val = g_hash_table_lookup(h, (gpointer)s);
+  if (val == NULL) {
+    val = make_value(1, s);
+    g_hash_table_insert(h, (gpointer)s, (gpointer)val);  
+  }
+  else {
+    increment_val(val);
+  }
+}
+
+This histogram is printed using a custom printer. The program generates a GList of the values in the histogram, then sorts it using a custom comparator function. Because the values contain a pointer to the keys, we can access the keys when we print the values, and we're done.
+
+void print_histogram(GHashTable *h, int num_to_print) 
+{
+  GList *vals = g_hash_table_get_values (h);
+  vals = g_list_sort(vals, (GCompareFunc) cmp_values);
+  HistValue *val;
+  int i;
+  if (num_to_print == -1) {
+      num_to_print = (int)g_hash_table_size(h);
+  }
+  for (i=0; i<num_to_print; i++) {
+    val = (HistValue *) g_list_nth_data(vals, i);
+    printf("key: %s; count: %i\n", val->str->str, val->val);
+  }
+}
+
+An alternative is to instead convert the hashtable to a list of tuples and sort the list of tuples, but that comes with its own runtime memory and CPU overhead as well. 
+
+I thought a bit about memory usage. I thought I might need to free the array of split words, but I realize that once I split the line into an array of words, pointers to those locations are used by the keys and values of the histogram and shouldn't actually ever be freed.
+
+

@@ -70,7 +70,6 @@ void add_to_hist(GHashTable *h, GString *s)
   else {
     increment_val(val);
   }
-
 }
 
 
