@@ -4,54 +4,62 @@
 #include <string.h>
 #include <ctype.h>
 
-typedef struct value {
+/* A count in a histogram
+   Contains a pointer to the key */
+typedef struct histvalue {
   int val;
   GString * str;
-} Value;
+} HistValue;
 
 
-const int MAX_WORDS_IN_LINE = 50;
-const int DEFAULT_NUM_TO_PRINT = 10;  
+#define MAX_WORDS_IN_LINE 50
+#define DEFAULT_NUM_TO_PRINT 10
 
-
-Value * make_value(int val, GString * str) {
-  Value *v = malloc(sizeof(Value));
+/* Returns a new histogram value
+   Args: the value (count), the key */
+HistValue * make_value(int val, GString * str) {
+  HistValue *v = malloc(sizeof(HistValue));
   if (v==NULL) {
-    fprintf(stderr, "Malloc failed to make Value");
+    fprintf(stderr, "Malloc failed to make HistValue");
     exit(-1);
   }
   v->val = val;
-  v->str = g_string_new(g_strdup(str->str));
+  v->str = g_string_new(str->str);
   return v;
 }
 
 
+/* Compare histvalues for use in sorting algorithm */
 int cmp_values(gconstpointer a, gconstpointer b) {
-  return ((Value *)b)->val - ((Value *)a)->val;
+  return ((HistValue *)b)->val - ((HistValue *)a)->val;
 }
 
 
-void increment_val(Value *v) {
+/* Increment a histogram value */
+void increment_val(HistValue *v) {
   (v->val)++;
 }
 
 
-void print_hash_table(GHashTable *h, int num_to_print) 
+/* Prints a histogram 
+   Args: hist to print, the number of rows to print */
+void print_histogram(GHashTable *h, int num_to_print) 
 {
   GList *vals = g_hash_table_get_values (h);
   vals = g_list_sort(vals, (GCompareFunc) cmp_values);
-  Value *val;
+  HistValue *val;
   int i;
   for (i=0; i<num_to_print; i++) {
-    val = (Value *) g_list_nth_data(vals, i);
+    val = (HistValue *) g_list_nth_data(vals, i);
     printf("key: %s; count: %i\n", val->str->str, val->val);
   }
 }
 
 
+/* Adds string to hist */
 void add_to_hist(GHashTable *h, GString *s) 
 {
-  Value *val = g_hash_table_lookup(h, (gpointer)s);
+  HistValue *val = g_hash_table_lookup(h, (gpointer)s);
   if (val == NULL) {
     val = make_value(1, s);
     g_hash_table_insert(h, (gpointer)s, (gpointer)val);  
@@ -63,6 +71,8 @@ void add_to_hist(GHashTable *h, GString *s)
 }
 
 
+/* Strips out punctuation and spaces from char* p 
+   Converts p to lowercase */
 void remove_nonchars_and_set_lowercase(char *p)
 {
   char *src =p, *dst = p;
@@ -81,6 +91,8 @@ void remove_nonchars_and_set_lowercase(char *p)
 }
 
 
+/* Helper function for adding to hist
+   args: string to format, hashtable to add to */
 void format_and_add_to_hist(GHashTable *h, char *s) {
   remove_nonchars_and_set_lowercase(s);
   if (!*s) 
@@ -90,6 +102,9 @@ void format_and_add_to_hist(GHashTable *h, char *s) {
 } 
 
 
+/* Helper function that parses user args
+   Ensures a file was given and if optional count arg
+   is given, prints that number of rows */
 int handle_args_and_get_num_print(int argc, char** argv) 
 {
   char *num;
@@ -105,6 +120,8 @@ int handle_args_and_get_num_print(int argc, char** argv)
 }
 
 
+/* Wrapper function that splits the string into words
+   returns pointer to array of char pointers */
 gchar ** split_line(char *buf)
 {
   return g_strsplit(buf, " ", MAX_WORDS_IN_LINE);
@@ -125,8 +142,7 @@ int main(int argc, char* argv[])
         break;
       format_and_add_to_hist(hist, words[i]);
     }
-    
   }
-  print_hash_table(hist, num_to_print);
+  print_histogram(hist, num_to_print);
   return 0;
 }

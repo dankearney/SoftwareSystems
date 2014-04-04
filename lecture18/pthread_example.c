@@ -74,7 +74,7 @@ int main ()
   }
 
   /* when the parent thread modifies the card, the child sees the change! */
-  card->rank = 7;
+  card->rank = 8;
   printf ("Parent: rank = %d, suit = %d\n", card->rank, card->suit);
 
   /* if the parent is done with the child, it detaches it, which

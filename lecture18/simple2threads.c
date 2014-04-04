@@ -13,8 +13,8 @@ Modified by Allen Downey.
 
 static void *child(void *ignored)
 {
-    sleep(3);
-    printf("Child is done sleeping 3 seconds.\n");
+    sleep(6);
+    printf("Child is done sleeping 6 seconds.\n");
     return NULL;
 }
 
