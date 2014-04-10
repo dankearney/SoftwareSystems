@@ -128,7 +128,6 @@ double matrix_sum1(Matrix *A) {
 double matrix_sum2(Matrix *A) {
     double total = 0.0;
     int i, j;
-
     for (j=0; j<A->cols; j++) {
 	for (i=0; i<A->rows; i++) {
 	    total += A->data[i][j];
@@ -155,19 +154,60 @@ double *row_sum(Matrix *A) {
     return res;
 }
 
-/* 
-   http://en.wikipedia.org/wiki/Magic_square
+// Adds the elements of one row of a matrix and returns the sum
+int add_row(Matrix *m, int row) 
+{
+  int i; int sum = 0;
+  for (i=0; i<m->cols; i++) {
+    sum += m->data[row][i];
+  }
+  return sum;
+}
 
-   A magic square is an arrangement of numbers (usually integers) in a
-   square grid, where the numbers in each row, and in each column, and
-   the numbers in the forward and backward main diagonals, all add up
-   to the same number. 
+// Adds the elements of one column of a matrix and returns the sum
+int add_col(Matrix *m, int col) 
+{
+  int i; int sum = 0;
+  for (i=0; i<m->rows; i++) {
+    sum += m->data[i][col];
+  }
+  return sum;
+}
 
-   Write a function called is_magic_square() that takes a matrix and 
-   returns an int, 1 if the matrix is a magic square, and 0 otherwise.
+// Adds the top-left to bottom-right diagonal of a matrix and returns the sum
+int add_main_diag(Matrix *m) {
+  int i; int sum = 0;
+  for (i=0; i<m->rows; i++) {
+    sum += m->data[i][i];
+  }
+  return sum;
+}
 
-   Feel free to use row_sum().
-*/
+// Adds the top-right to bottom-left diagonal of a matrix and returns the sum
+int add_second_diag(Matrix *m) {
+  int i; int sum = 0;
+  for (i=0; i<m->rows; i++) {
+    sum +=  m->data[i][m->rows - i - 1];
+  }
+  return sum;
+}
+
+// Returns 1 is matrix is a magic square, 0 otherwise
+int is_magic_square(Matrix *m) 
+{
+  if (m->rows != m->cols) 
+    return 0;
+  int i = 0; 
+  int sum = add_main_diag(m);
+  if (add_second_diag(m) != sum)
+    return 0;
+  for (i=0; i<m->rows; i++) {
+    if ((sum != add_row(m, i)) ||
+	(sum != add_col(m, i)))
+      return 0;
+  }
+  return 1;
+}
 
 
 int main() {
@@ -202,6 +242,17 @@ int main() {
 	printf("row %d\t%lf\n", i, sums[i]);
     }
     // should print 6, 22, 38
+
+    Matrix *M = make_matrix(5,5);
+    increment_matrix(M, 3);
+    
+    puts("M");
+    print_matrix(M);
+
+    int is_magic = is_magic_square(M);
+    printf("Matrix M: %i\n", is_magic);
+    is_magic = is_magic_square(A);
+    printf("Matrix A: %i\n", is_magic);
 
     return 0;
 }
